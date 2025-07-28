@@ -1,0 +1,168 @@
+//Universidad del Valle de Guatemala
+//BE3029 - Electrónica Digital 2
+//Oscar Ramírez
+//22/07/2025
+//Laboratorio 2
+//MCU: ESP32 dev kit 1.0
+
+
+//Librerias
+#include <Arduino.h>
+#include <stdint.h>
+
+
+//Definiciones
+#define LED_A 16
+#define LED_B 5
+#define LED_C 19
+#define LED_D 23
+#define btt_avance 12
+#define btt_retroceso 33
+#define btt_cambio 35
+#define debounceDelay 50
+
+//Prototipos de funciones
+void actualizarLEDS(int valor, bool Mode); 
+
+
+//Variables globales
+int contador;
+bool modoBinario = false; //false para modo decimal y true para binario
+
+//Variable anti-rebote 1
+unsigned long tiempo_rebote1 = 0; //Guarda el último momento en que cambió el estado del botón
+bool last_btt_state1 = HIGH; //Estado anterior del botón
+bool btt_state1  = HIGH; // Estado actual validado (después del anti-rebote)
+
+//Variable anti-rebote 2
+unsigned long tiempo_rebote2 = 0;
+bool last_btt_state2 = LOW;
+bool btt_state2 = LOW;
+
+//Varible anti-rebote 3
+unsigned long tiempo_rebote3 = 0;
+bool last_btt_state3 = HIGH;
+bool btt_state3 = HIGH;
+
+
+//Configuración
+void setup() {
+  Serial.begin(115200);
+  pinMode(LED_A, OUTPUT);
+  pinMode(LED_B, OUTPUT);
+  pinMode(LED_C, OUTPUT);
+  pinMode(LED_D, OUTPUT);
+
+  //Defino pines de los botones
+  pinMode(btt_avance, INPUT_PULLUP);
+  pinMode(btt_retroceso, INPUT_PULLDOWN);
+  pinMode(btt_cambio, INPUT_PULLUP);
+
+  digitalWrite(LED_A, LOW);
+  digitalWrite(LED_B, LOW);
+  digitalWrite(LED_C, LOW);
+  digitalWrite(LED_D, LOW);
+
+  contador = 0;
+}
+
+
+//Loop infinito
+void loop() {
+  unsigned long currentTime = millis(); //Lee el tiempo actual
+  
+  //Anti-rebote botón 1
+  bool lectura1 = digitalRead(btt_avance);
+  if (lectura1 != last_btt_state1) {
+    tiempo_rebote1 = currentTime; //Si el estado actual es diferente al anterior Se reinicia el temporizador
+  }
+  if ((currentTime - tiempo_rebote1) > debounceDelay) { //Solo si ha pasado suficiente tiempo desde el último cambio hace un acción
+    if (lectura1 == LOW && btt_state1 == HIGH) {  //Si el botón está presionado, pasa de HIGH a LOW
+      contador++; //Se incrementa el contador 
+      if (modoBinario == true) {
+        if (contador > 15) contador = 0;
+      } else {
+        if (contador > 3) contador = 0;
+      }
+    }
+    btt_state1 = lectura1; //Guarda el estado validado
+  }
+  last_btt_state1 = lectura1; //Guarda el estado para la próxima comparación
+
+  //Anti-rebote botón 2
+  bool lectura2 = digitalRead(btt_retroceso);
+  if (lectura2 != last_btt_state2) {
+    tiempo_rebote2 = currentTime;
+  }
+  if ((currentTime - tiempo_rebote2) > debounceDelay) {
+    if (lectura2 == HIGH && btt_state2 == LOW) {
+      contador--;
+      if (modoBinario == true) {
+        if (contador < 0) contador = 15;
+      } else {
+        if (contador < 0) contador = 3;
+      }
+    }
+    btt_state2 = lectura2;
+  }
+  last_btt_state2 = lectura2;
+
+  //Anti-rebote botón 3
+  bool lectura3 = digitalRead(btt_cambio);
+  if (lectura3 != last_btt_state3) {
+    tiempo_rebote3 = currentTime;
+  }
+  if ((currentTime - tiempo_rebote3) > debounceDelay) {
+    if (lectura3 == LOW && btt_state3 == HIGH) {
+      modoBinario = !modoBinario; // Alternar entre modos
+      contador = 0; // Reiniciar contador al cambiar de modo
+      Serial.print("Modo cambiado a: ");
+      Serial.println(modoBinario ? "Binario" : "Decimal"); //Operador ternario que funciona como una condición if-else
+    }
+    btt_state3 = lectura3;
+  }
+  last_btt_state3 = lectura3;
+  
+//Actualizar las LEDS según el modo de funcionamiento
+actualizarLEDS (contador, modoBinario);
+
+// Debug por serial
+  Serial.print("Contador: ");
+  Serial.print(contador);
+  Serial.print(" | Modo: ");
+  Serial.println(modoBinario ? "Binario" : "Decimal");
+  delay(100); // Pequeño delay para estabilidad
+}
+
+
+//Definición de funciones
+void actualizarLEDS(int valor, bool Mode) {
+  if (Mode == true) { // Modo binario con numeración hexadecimal
+    digitalWrite(LED_A, valor & 0x01 ? HIGH : LOW);     // Bit 0 (menor significativo)
+    digitalWrite(LED_B, valor & 0x02 ? HIGH : LOW);     // Comprobación con AND del bit 1
+    digitalWrite(LED_C, valor & 0x04 ? HIGH : LOW);     // Comprobación con AND del bit 2
+    digitalWrite(LED_D, valor & 0x08 ? HIGH : LOW);     // Bit 3 (más significativo)
+  } else {// Modo decimal
+    digitalWrite(LED_A, LOW);
+    digitalWrite(LED_B, LOW);
+    digitalWrite(LED_C, LOW);
+    digitalWrite(LED_D, LOW);
+    
+    switch (valor % 4) { //Se devuelve el residuo de una operación
+      case 0: 
+      digitalWrite(LED_A, HIGH); 
+      break;
+      case 1: 
+      digitalWrite(LED_B, HIGH); 
+      break;
+      case 2: 
+      digitalWrite(LED_C, HIGH); 
+      break;
+      case 3: 
+      digitalWrite(LED_D, HIGH); 
+      break;
+    }
+  }
+}
+//El valor numérico actual del contador (0-15 en modo binario, 0-3 en modo decimal)
+//Mode indica el modo actual si es true es binario y si es false decimal
