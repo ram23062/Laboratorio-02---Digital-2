@@ -126,17 +126,14 @@ void loop() {
 //Actualizar las LEDS según el modo de funcionamiento
 actualizarLEDS (contador, modoBinario);
 
-// Debug por serial
-  Serial.print("Contador: ");
-  Serial.print(contador);
-  Serial.print(" | Modo: ");
-  Serial.println(modoBinario ? "Binario" : "Decimal");
-  delay(100); // Pequeño delay para estabilidad
+delay(100); // Pequeño delay para estabilidad
 }
 
 
 //Definición de funciones
 void actualizarLEDS(int valor, bool Mode) {
+//El valor numérico actual del contador (0-15 en modo binario, 0-3 en modo decimal)
+//Mode indica el modo actual si es true es binario y si es false decimal
   if (Mode == true) { // Modo binario con numeración hexadecimal
     digitalWrite(LED_A, valor & 0x01 ? HIGH : LOW);     // Bit 0 (menor significativo)
     digitalWrite(LED_B, valor & 0x02 ? HIGH : LOW);     // Comprobación con AND del bit 1
@@ -164,5 +161,5 @@ void actualizarLEDS(int valor, bool Mode) {
     }
   }
 }
-//El valor numérico actual del contador (0-15 en modo binario, 0-3 en modo decimal)
-//Mode indica el modo actual si es true es binario y si es false decimal
+
+
