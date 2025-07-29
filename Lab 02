@@ -56,7 +56,7 @@ void setup() {
   //Defino pines de los botones
   pinMode(btt_avance, INPUT_PULLUP);
   pinMode(btt_retroceso, INPUT_PULLDOWN);
-  pinMode(btt_cambio, INPUT_PULLUP);
+  pinMode(btt_cambio, INPUT);
 
   digitalWrite(LED_A, LOW);
   digitalWrite(LED_B, LOW);
@@ -113,7 +113,7 @@ void loop() {
     tiempo_rebote3 = currentTime;
   }
   if ((currentTime - tiempo_rebote3) > debounceDelay) {
-    if (lectura3 == LOW && btt_state3 == HIGH) {
+    if (lectura3 == HIGH && btt_state3 == LOW) {
       modoBinario = !modoBinario; // Alternar entre modos
       contador = 0; // Reiniciar contador al cambiar de modo
       Serial.print("Modo cambiado a: ");
