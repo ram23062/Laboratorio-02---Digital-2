@@ -82,7 +82,7 @@ void loop() {
       if (modoBinario == true) {
         if (contador > 15) contador = 0;
       } else {
-        if (contador > 3) contador = 0;
+        if (contador > 4) contador = 0;
       }
     }
     btt_state1 = lectura1; //Guarda el estado validado
@@ -100,7 +100,7 @@ void loop() {
       if (modoBinario == true) {
         if (contador < 0) contador = 15;
       } else {
-        if (contador < 0) contador = 3;
+        if (contador < 0) contador = 4;
       }
     }
     btt_state2 = lectura2;
@@ -145,17 +145,23 @@ void actualizarLEDS(int valor, bool Mode) {
     digitalWrite(LED_C, LOW);
     digitalWrite(LED_D, LOW);
     
-    switch (valor % 4) { //Se devuelve el residuo de una operación
-      case 0: 
+    switch (valor % 5) { //Se devuelve el residuo de una operación
+      case 0:
+      digitalWrite(LED_A, LOW);
+      digitalWrite(LED_B, LOW);
+      digitalWrite(LED_C, LOW);
+      digitalWrite(LED_D, LOW);
+      break;
+      case 1:
       digitalWrite(LED_A, HIGH); 
       break;
-      case 1: 
+      case 2: 
       digitalWrite(LED_B, HIGH); 
       break;
-      case 2: 
+      case 3: 
       digitalWrite(LED_C, HIGH); 
       break;
-      case 3: 
+      case 4: 
       digitalWrite(LED_D, HIGH); 
       break;
     }
